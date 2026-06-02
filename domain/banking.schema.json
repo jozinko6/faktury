@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/banking.schema.json",
+  "title": "Banking import and transactions",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bankAccount", "statementImport", "transactions"],
+  "properties": {
+    "bankAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "currency",
+        "accountType",
+        "isDefault",
+        "validFrom",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "iban": { "type": ["string", "null"], "minLength": 15, "maxLength": 34 },
+        "bic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+        "bankName": { "type": ["string", "null"], "maxLength": 120 },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "accountType": {
+          "type": "string",
+          "enum": ["business", "private_used_for_business", "revolut", "wise", "paypal", "stripe", "cash"]
+        },
+        "analyticsAccountCode": { "type": ["string", "null"], "maxLength": 20 },
+        "isDefault": { "type": "boolean" },
+        "validFrom": { "type": "string", "format": "date" },
+        "validTo": { "type": ["string", "null"], "format": "date" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "statementImport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "bankAccountId",
+        "parserType",
+        "sourceFileName",
+        "fileHash",
+        "importHash",
+        "status",
+        "importedBy",
+        "importedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "bankAccountId": { "type": "string", "format": "uuid" },
+        "parserType": {
+          "type": "string",
+          "enum": ["csv_generic", "xlsx_generic", "camt053_skeleton", "bank_specific"]
+        },
+        "sourceFileName": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "fileHash": { "$ref": "#/$defs/sha256" },
+        "importHash": { "$ref": "#/$defs/sha256" },
+        "status": {
+          "type": "string",
+          "enum": ["uploaded", "parsed", "imported", "duplicate", "failed"]
+        },
+        "newTransactionsCount": { "type": "integer", "minimum": 0, "default": 0 },
+        "duplicateTransactionsCount": { "type": "integer", "minimum": 0, "default": 0 },
+        "errorMessage": { "type": ["string", "null"], "maxLength": 2000 },
+        "importedBy": { "type": "string", "format": "uuid" },
+        "importedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "transactions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/bankTransaction" }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "bankTransaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "bankAccountId",
+        "statementImportId",
+        "bookingDate",
+        "amount",
+        "currency",
+        "transactionHash",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "bankAccountId": { "type": "string", "format": "uuid" },
+        "statementImportId": { "type": "string", "format": "uuid" },
+        "bookingDate": { "type": "string", "format": "date" },
+        "valueDate": { "type": ["string", "null"], "format": "date" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "counterpartyName": { "type": ["string", "null"], "maxLength": 190 },
+        "counterpartyIban": { "type": ["string", "null"], "minLength": 15, "maxLength": 34 },
+        "counterpartyBic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+        "variableSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "constantSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "specificSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "message": { "type": ["string", "null"], "maxLength": 500 },
+        "bankReference": { "type": ["string", "null"], "maxLength": 120 },
+        "transactionHash": { "$ref": "#/$defs/sha256" },
+        "status": {
+          "type": "string",
+          "enum": [
+            "new",
+            "matched",
+            "partially_matched",
+            "ignored",
+            "internal_transfer",
+            "needs_document",
+            "needs_review",
+            "posted"
+          ]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

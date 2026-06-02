@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/double-entry-accounting.schema.json",
+  "title": "Double-entry accounting skeleton",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["activationStatus", "chartAccount", "journalEntry", "journalEntryLines", "postingRule", "draftPosting"],
+  "properties": {
+    "activationStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organizationId", "isPrimaryAccounting", "status"],
+      "properties": {
+        "organizationId": { "type": "string", "format": "uuid" },
+        "isPrimaryAccounting": {
+          "const": false,
+          "description": "Do not activate double-entry as the primary accounting system until stable."
+        },
+        "status": { "type": "string", "enum": ["skeleton", "testing", "disabled"] }
+      }
+    },
+    "chartAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "code", "name", "accountClass", "accountType", "isActive"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "code": { "type": "string", "pattern": "^[0-9]{3,6}$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "accountClass": { "type": "integer", "minimum": 0, "maximum": 7 },
+        "accountType": { "type": "string", "enum": ["asset", "liability", "equity", "expense", "revenue", "closing", "off_balance"] },
+        "isActive": { "type": "boolean" },
+        "deprecatedAt": { "type": ["string", "null"], "format": "date-time" },
+        "replacementAccountId": { "type": ["string", "null"], "format": "uuid" }
+      }
+    },
+    "journalEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "entryDate", "status", "sourceDocumentType", "sourceDocumentId", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "entryDate": { "type": "string", "format": "date" },
+        "postingDate": { "type": ["string", "null"], "format": "date" },
+        "status": { "type": "string", "enum": ["draft", "suggested", "approved", "posted", "voided"] },
+        "sourceDocumentType": { "type": "string", "enum": ["issued_invoice", "received_invoice", "expense", "bank_transaction", "internal_document"] },
+        "sourceDocumentId": { "type": "string", "format": "uuid" },
+        "description": { "type": ["string", "null"], "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "postedAt": { "type": ["string", "null"], "format": "date-time" },
+        "postedBy": { "type": ["string", "null"], "format": "uuid" }
+      }
+    },
+    "journalEntryLines": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/journalEntryLine" }
+    },
+    "postingRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "eventType", "ruleType", "validFrom", "version", "lines"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "eventType": { "type": "string", "enum": ["invoice_issued", "payment_matched", "expense_approved", "bank_fee", "internal_transfer"] },
+        "organizationType": { "type": "string", "enum": ["sole_trader", "sro", "other"] },
+        "accountingMode": { "type": "string", "enum": ["double_entry"] },
+        "vatMode": { "type": "string", "enum": ["non_payer", "payer", "section_7", "section_7a"] },
+        "ruleType": { "type": "string", "enum": ["system_rule", "accountant_rule", "user_rule"] },
+        "validFrom": { "type": "string", "format": "date" },
+        "validTo": { "type": ["string", "null"], "format": "date" },
+        "version": { "type": "integer", "minimum": 1 },
+        "lines": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/postingRuleLine" }
+        }
+      }
+    },
+    "draftPosting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "sourceDocumentType", "sourceDocumentId", "status", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "sourceDocumentType": { "type": "string", "enum": ["issued_invoice", "received_invoice", "expense", "bank_transaction", "internal_document"] },
+        "sourceDocumentId": { "type": "string", "format": "uuid" },
+        "postingRuleId": { "type": ["string", "null"], "format": "uuid" },
+        "status": { "type": "string", "enum": ["suggested", "needs_review", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reviewedBy": { "type": ["string", "null"], "format": "uuid" },
+        "reviewedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "journalEntryLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "journalEntryId", "accountId", "side", "amount", "currency"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "journalEntryId": { "type": "string", "format": "uuid" },
+        "accountId": { "type": "string", "format": "uuid" },
+        "side": { "type": "string", "enum": ["debit", "credit"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "partnerId": { "type": ["string", "null"], "format": "uuid" },
+        "costCenterId": { "type": ["string", "null"], "format": "uuid" },
+        "analyticAccountId": { "type": ["string", "null"], "format": "uuid" }
+      }
+    },
+    "postingRuleLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["side", "accountCode"],
+      "properties": {
+        "side": { "type": "string", "enum": ["debit", "credit"] },
+        "accountCode": { "type": "string", "pattern": "^[0-9]{3,6}$" },
+        "amountSource": { "type": "string", "enum": ["net", "vat", "gross", "payment_amount"] },
+        "description": { "type": ["string", "null"], "maxLength": 300 }
+      }
+    }
+  }
+}

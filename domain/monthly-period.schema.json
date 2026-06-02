@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/monthly-period.schema.json",
+  "title": "Monthly accounting period and checklist",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["monthlyPeriod", "checklist", "missingDocumentsSummary"],
+  "properties": {
+    "monthlyPeriod": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "periodKey",
+        "year",
+        "month",
+        "status",
+        "exportStatus",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "periodKey": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+          "description": "Calendar month in YYYY-MM format."
+        },
+        "year": { "type": "integer", "minimum": 2000, "maximum": 2100 },
+        "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "needs_documents",
+            "ready_for_accountant",
+            "returned_with_questions",
+            "in_accounting_review",
+            "processed",
+            "locked"
+          ]
+        },
+        "exportStatus": {
+          "type": "string",
+          "enum": [
+            "not_prepared",
+            "prepared",
+            "exported",
+            "downloaded",
+            "accepted_by_accountant",
+            "changed_after_export",
+            "locked"
+          ]
+        },
+        "readyForAccountantAt": { "type": ["string", "null"], "format": "date-time" },
+        "readyForAccountantBy": { "type": ["string", "null"], "format": "uuid" },
+        "lockedAt": { "type": ["string", "null"], "format": "date-time" },
+        "lockedBy": { "type": ["string", "null"], "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checklistItem" }
+    },
+    "periodQuestions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/periodQuestion" }
+    },
+    "missingDocumentsSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "periodId",
+        "paymentsWithoutDocument",
+        "expensesWithoutAttachment",
+        "documentsNeedsReview",
+        "documentsWithoutCategory",
+        "documentsWithoutVatTreatment",
+        "blockingCount"
+      ],
+      "properties": {
+        "periodId": { "type": "string", "format": "uuid" },
+        "paymentsWithoutDocument": { "type": "integer", "minimum": 0 },
+        "expensesWithoutAttachment": { "type": "integer", "minimum": 0 },
+        "documentsNeedsReview": { "type": "integer", "minimum": 0 },
+        "documentsWithoutCategory": { "type": "integer", "minimum": 0 },
+        "documentsWithoutVatTreatment": { "type": "integer", "minimum": 0 },
+        "unansweredQuestions": { "type": "integer", "minimum": 0, "default": 0 },
+        "blockingCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Must be 0 before marking period ready_for_accountant."
+        },
+        "generatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "checklistItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "periodId", "audience", "code", "label", "status"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "periodId": { "type": "string", "format": "uuid" },
+        "audience": {
+          "type": "string",
+          "enum": ["business_owner", "accountant"]
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "import_bank_statement",
+            "review_payments_without_document",
+            "add_missing_invoices",
+            "approve_expenses",
+            "review_unpaid_invoices",
+            "prepare_accountant_export",
+            "lock_month",
+            "review_vat",
+            "post_internal_documents",
+            "close_bank",
+            "send_questions"
+          ]
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "status": {
+          "type": "string",
+          "enum": ["todo", "in_progress", "done", "blocked", "not_applicable"]
+        },
+        "completedBy": { "type": ["string", "null"], "format": "uuid" },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" },
+        "blockingReason": { "type": ["string", "null"], "maxLength": 500 }
+      }
+    },
+    "periodQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "periodId", "question", "status", "askedBy", "askedAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "periodId": { "type": "string", "format": "uuid" },
+        "linkedDocumentId": { "type": ["string", "null"], "format": "uuid" },
+        "linkedBankTransactionId": { "type": ["string", "null"], "format": "uuid" },
+        "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "answer": { "type": ["string", "null"], "maxLength": 4000 },
+        "status": {
+          "type": "string",
+          "enum": ["needs_info", "answered", "resolved", "returned"]
+        },
+        "askedBy": { "type": "string", "format": "uuid" },
+        "askedAt": { "type": "string", "format": "date-time" },
+        "answeredBy": { "type": ["string", "null"], "format": "uuid" },
+        "answeredAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

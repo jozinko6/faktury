@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id              String            @id
+  legalName       String
+  tradeName       String?
+  legalForm       String
+  ico             String?
+  dic             String?
+  icDph           String?
+  country         String            @default("SK")
+  defaultCurrency String            @default("EUR")
+  createdAt       DateTime
+  updatedAt       DateTime
+  partners        BusinessPartner[]
+  invoices        Invoice[]
+  auditEvents     AuditEvent[]
+  numberSeries    NumberSeries[]
+  emailEvents     InvoiceEmailEvent[]
+  emailJobs       EmailJob[]
+  emailLogs       EmailLog[]
+  bankAccounts    BankAccount[]
+  bankStatementImports BankStatementImport[]
+  bankTransactions BankTransaction[]
+}
+
+model BusinessPartner {
+  id              String       @id
+  organizationId  String
+  legalName       String
+  displayName     String
+  partnerType     String
+  country         String
+  language        String       @default("SK")
+  defaultDueDays  Int
+  defaultCurrency String       @default("EUR")
+  createdAt       DateTime
+  updatedAt       DateTime
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  invoices        Invoice[]
+
+  @@index([organizationId])
+}
+
+model Invoice {
+  id                      String          @id
+  organizationId          String
+  customerId              String
+  type                    String
+  status                  String
+  number                  String?
+  variableSymbol          String?
+  currency                String          @default("EUR")
+  issueDate               DateTime
+  deliveryDate            DateTime
+  dueDate                 DateTime
+  paymentMethod           String
+  vatMode                 String
+  netTotal                Decimal
+  vatTotal                Decimal
+  grossTotal              Decimal
+  allocatedPaymentsTotal  Decimal         @default(0)
+  creditNotesTotal        Decimal         @default(0)
+  remainingBalance        Decimal
+  issueSnapshotJson       String?
+  createdAt               DateTime
+  updatedAt               DateTime
+  organization            Organization    @relation(fields: [organizationId], references: [id])
+  customer                BusinessPartner @relation(fields: [customerId], references: [id])
+  items                   InvoiceItem[]
+  pdfVersions             InvoicePdfVersion[]
+  emailEvents             InvoiceEmailEvent[]
+  emailJobs               EmailJob[]
+
+  @@index([organizationId])
+  @@index([customerId])
+}
+
+model InvoiceItem {
+  id               String  @id
+  invoiceId        String
+  description      String
+  quantity         Decimal
+  unit             String
+  unitPriceNet     Decimal
+  discountPercent  Decimal @default(0)
+  vatRateCode      String
+  vatTreatmentCode String
+  lineNet          Decimal
+  lineVat          Decimal
+  lineGross        Decimal
+  invoice          Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model AuditEvent {
+  id             String       @id
+  organizationId String
+  entityType     String
+  entityId       String
+  action         String
+  actorId        String?
+  occurredAt     DateTime
+  oldValueJson   String?
+  newValueJson   String?
+  reason         String?
+  previousHash   String?
+  currentHash    String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([entityType, entityId])
+}
+
+model NumberSeries {
+  id             String       @id
+  organizationId String
+  documentType   String
+  code           String
+  pattern        String
+  period         String
+  assignOn       String       @default("issue")
+  padding        Int          @default(4)
+  nextNumber     Int          @default(1)
+  isActive       Boolean      @default(true)
+  validFrom      DateTime
+  validTo        DateTime?
+  createdAt      DateTime
+  updatedAt      DateTime
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, documentType, isActive])
+}
+
+model InvoicePdfVersion {
+  id              String   @id
+  invoiceId       String
+  organizationId  String
+  version         Int
+  fileId          String
+  pdfHash         String
+  snapshotHash    String
+  templateVersion String
+  renderVersion   String
+  status          String
+  reason          String
+  metadataOnly    Boolean  @default(true)
+  createdBy       String?
+  createdAt       DateTime
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([invoiceId, version])
+  @@index([organizationId])
+  @@index([invoiceId])
+}
+
+model InvoiceEmailEvent {
+  id             String       @id
+  organizationId String
+  invoiceId      String
+  invoiceNumber  String
+  pdfVersionId   String
+  occurredAt     DateTime
+  createdBy      String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  invoice        Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  emailJobs      EmailJob[]
+
+  @@index([organizationId])
+  @@index([invoiceId])
+}
+
+model EmailJob {
+  id               String            @id
+  organizationId   String
+  eventId          String
+  invoiceId        String
+  pdfVersionId     String?
+  templateCode     String
+  language         String            @default("SK")
+  toJson           String
+  ccJson           String?
+  bccJson          String?
+  replyTo          String?
+  subject          String
+  bodyHtmlSnapshot String?
+  bodyTextSnapshot String
+  attachmentFileIdsJson String
+  status           String
+  attemptCount     Int               @default(0)
+  maxAttempts      Int               @default(3)
+  nextAttemptAt    DateTime?
+  createdAt        DateTime
+  processedAt      DateTime?
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  event            InvoiceEmailEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invoice          Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  logs             EmailLog[]
+
+  @@index([organizationId])
+  @@index([invoiceId])
+  @@index([status, nextAttemptAt])
+}
+
+model EmailLog {
+  id                String       @id
+  organizationId    String
+  emailJobId        String
+  providerMessageId String?
+  status            String
+  smtpResponse      String?
+  errorCode         String?
+  errorMessage      String?
+  createdAt         DateTime
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  emailJob          EmailJob     @relation(fields: [emailJobId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([emailJobId])
+}
+
+model BankAccount {
+  id                   String                @id
+  organizationId       String
+  iban                 String?
+  bic                  String?
+  bankName             String?
+  currency             String                @default("EUR")
+  accountType          String
+  analyticsAccountCode String?
+  isDefault            Boolean               @default(false)
+  validFrom            DateTime
+  validTo              DateTime?
+  createdAt            DateTime
+  updatedAt            DateTime
+  organization         Organization          @relation(fields: [organizationId], references: [id])
+  statementImports     BankStatementImport[]
+  transactions         BankTransaction[]
+
+  @@index([organizationId])
+}
+
+model BankStatementImport {
+  id                         String            @id
+  organizationId             String
+  bankAccountId              String
+  parserType                 String
+  sourceFileName             String
+  fileHash                   String
+  importHash                 String
+  status                     String
+  newTransactionsCount       Int               @default(0)
+  duplicateTransactionsCount Int               @default(0)
+  errorMessage               String?
+  importedBy                 String
+  importedAt                 DateTime
+  organization               Organization      @relation(fields: [organizationId], references: [id])
+  bankAccount                BankAccount       @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  transactions               BankTransaction[]
+
+  @@unique([organizationId, importHash])
+  @@index([organizationId])
+  @@index([bankAccountId])
+}
+
+model BankTransaction {
+  id                String              @id
+  organizationId    String
+  bankAccountId     String
+  statementImportId String
+  bookingDate       DateTime
+  valueDate         DateTime?
+  amount            Decimal
+  currency          String              @default("EUR")
+  counterpartyName  String?
+  counterpartyIban  String?
+  counterpartyBic   String?
+  variableSymbol    String?
+  constantSymbol    String?
+  specificSymbol    String?
+  message           String?
+  bankReference     String?
+  transactionHash   String
+  status            String
+  createdAt         DateTime
+  updatedAt         DateTime?
+  organization      Organization        @relation(fields: [organizationId], references: [id])
+  bankAccount       BankAccount         @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  statementImport   BankStatementImport @relation(fields: [statementImportId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, transactionHash])
+  @@index([organizationId])
+  @@index([bankAccountId])
+  @@index([statementImportId])
+}

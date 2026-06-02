@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/validation.schema.json",
+  "title": "Validation engine contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["validationRule", "validationContext", "validationResult", "ruleRegistry"],
+  "properties": {
+    "validationRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "code", "severity", "entityType", "category", "isActive"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "code": { "$ref": "#/$defs/ruleCode" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "entityType": { "$ref": "#/$defs/entityType" },
+        "category": {
+          "type": "string",
+          "enum": ["iban", "invoice", "vat", "number_series", "locked_period", "missing_documents"]
+        },
+        "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "isActive": { "type": "boolean" }
+      }
+    },
+    "validationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organizationId", "entityType", "entityId", "mode"],
+      "properties": {
+        "organizationId": { "type": "string", "format": "uuid" },
+        "entityType": { "$ref": "#/$defs/entityType" },
+        "entityId": { "type": "string", "format": "uuid" },
+        "mode": { "type": "string", "enum": ["draft", "issue", "send", "export", "lock_period", "review"] },
+        "periodId": { "type": ["string", "null"], "format": "uuid" },
+        "taxProfileId": { "type": ["string", "null"], "format": "uuid" }
+      }
+    },
+    "validationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleCode", "severity", "entityType", "entityId", "status", "message"],
+      "properties": {
+        "ruleCode": { "$ref": "#/$defs/ruleCode" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "entityType": { "$ref": "#/$defs/entityType" },
+        "entityId": { "type": "string", "format": "uuid" },
+        "status": { "type": "string", "enum": ["passed", "failed", "skipped"] },
+        "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "blocking": { "type": "boolean", "default": false },
+        "details": { "type": ["object", "null"] }
+      }
+    },
+    "ruleRegistry": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ruleCode" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "severity": {
+      "type": "string",
+      "enum": ["error", "warning", "info"]
+    },
+    "entityType": {
+      "type": "string",
+      "enum": [
+        "organization",
+        "business_partner",
+        "issued_invoice",
+        "received_invoice",
+        "expense",
+        "bank_account",
+        "bank_transaction",
+        "number_series",
+        "monthly_period",
+        "document_inbox_item",
+        "vat_period"
+      ]
+    },
+    "ruleCode": {
+      "type": "string",
+      "enum": [
+        "iban_format_valid",
+        "invoice_has_customer",
+        "invoice_has_items",
+        "invoice_due_date_not_before_issue_date",
+        "invoice_number_unique",
+        "invoice_variable_symbol_unique",
+        "non_payer_must_not_charge_vat",
+        "payer_must_have_vat_treatment",
+        "vat_treatment_required_for_foreign_document",
+        "number_series_assigns_only_on_issue",
+        "locked_period_blocks_document_change",
+        "sent_invoice_requires_correction_for_change",
+        "new_supplier_iban_warning",
+        "received_invoice_duplicate_warning",
+        "expense_requires_attachment",
+        "missing_documents_block_accountant_export"
+      ]
+    }
+  }
+}

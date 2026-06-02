@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/expenses.schema.json",
+  "title": "Received invoices and expenses",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receivedInvoice", "expense", "items", "attachments", "category"],
+  "properties": {
+    "receivedInvoice": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "supplierId",
+        "supplierInvoiceNumber",
+        "issueDate",
+        "receivedDate",
+        "dueDate",
+        "currency",
+        "totals",
+        "vatTreatmentCode",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "supplierId": { "type": "string", "format": "uuid" },
+        "supplierInvoiceNumber": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "issueDate": { "type": "string", "format": "date" },
+        "deliveryDate": { "type": ["string", "null"], "format": "date" },
+        "receivedDate": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "iban": { "type": ["string", "null"], "minLength": 15, "maxLength": 34 },
+        "variableSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "categoryId": { "type": ["string", "null"], "format": "uuid" },
+        "vatTreatmentCode": { "$ref": "#/$defs/vatTreatmentCode" },
+        "totals": { "$ref": "#/$defs/expenseTotals" },
+        "status": { "$ref": "#/$defs/expenseStatus" },
+        "bankTransactionId": { "type": ["string", "null"], "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "expense": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "expenseType",
+        "status",
+        "currency",
+        "totals",
+        "taxDeductibility",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "receivedInvoiceId": { "type": ["string", "null"], "format": "uuid" },
+        "bankTransactionId": { "type": ["string", "null"], "format": "uuid" },
+        "expenseType": {
+          "type": "string",
+          "enum": ["received_invoice", "receipt", "bank_payment_without_document", "paid_privately", "mixed", "non_deductible", "review_required"]
+        },
+        "status": { "$ref": "#/$defs/expenseStatus" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "totals": { "$ref": "#/$defs/expenseTotals" },
+        "categoryId": { "type": ["string", "null"], "format": "uuid" },
+        "taxDeductibility": {
+          "type": "string",
+          "enum": ["fully_deductible", "partially_deductible", "non_deductible", "review_required"]
+        },
+        "businessPercentage": { "type": "number", "minimum": 0, "maximum": 100, "default": 100 },
+        "privatePercentage": { "type": "number", "minimum": 0, "maximum": 100, "default": 0 },
+        "billableStatus": {
+          "type": "string",
+          "enum": ["unbilled", "included_on_invoice", "reimbursed", "non_billable"],
+          "default": "non_billable"
+        },
+        "note": { "type": ["string", "null"], "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/expenseItem" }
+    },
+    "attachments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/expenseAttachment" }
+    },
+    "category": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "name", "taxDeductibility", "riskLevel"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "name": {
+          "type": "string",
+          "enum": [
+            "softvér",
+            "telefón",
+            "internet",
+            "notebook",
+            "kancelárske potreby",
+            "nájom",
+            "coworking",
+            "auto",
+            "PHM",
+            "cestovné",
+            "reprezentácia",
+            "vzdelávanie",
+            "marketing",
+            "bankové poplatky",
+            "poistenie",
+            "odvody",
+            "dane",
+            "na kontrolu"
+          ]
+        },
+        "description": { "type": ["string", "null"], "maxLength": 500 },
+        "simpleAccountingMapping": { "type": ["string", "null"], "maxLength": 120 },
+        "doubleEntryMapping": { "type": ["string", "null"], "maxLength": 120 },
+        "vatTreatmentCode": { "$ref": "#/$defs/nullableVatTreatmentCode" },
+        "taxDeductibility": {
+          "type": "string",
+          "enum": ["fully_deductible", "partially_deductible", "non_deductible", "review_required"]
+        },
+        "requiresAttachment": { "type": "boolean" },
+        "requiresNote": { "type": "boolean" },
+        "riskLevel": { "type": "string", "enum": ["low", "medium", "high", "review"] }
+      }
+    }
+  },
+  "$defs": {
+    "expenseStatus": {
+      "type": "string",
+      "enum": ["draft", "inbox", "recognized", "needs_info", "submitted", "approved", "rejected", "posted", "paid", "paid_privately", "archived"]
+    },
+    "vatTreatmentCode": {
+      "type": "string",
+      "enum": [
+        "domestic_goods_or_services",
+        "domestic_reduced_rate",
+        "exempt_supply",
+        "reverse_charge_eu_service",
+        "reverse_charge_domestic",
+        "outside_scope",
+        "non_vat_payer_invoice",
+        "import_service",
+        "eu_goods"
+      ]
+    },
+    "nullableVatTreatmentCode": {
+      "type": ["string", "null"],
+      "enum": [
+        "domestic_goods_or_services",
+        "domestic_reduced_rate",
+        "exempt_supply",
+        "reverse_charge_eu_service",
+        "reverse_charge_domestic",
+        "outside_scope",
+        "non_vat_payer_invoice",
+        "import_service",
+        "eu_goods",
+        null
+      ]
+    },
+    "expenseTotals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["netTotal", "vatTotal", "grossTotal"],
+      "properties": {
+        "netTotal": { "type": "number" },
+        "vatTotal": { "type": "number" },
+        "grossTotal": { "type": "number" },
+        "deductibleAmount": { "type": ["number", "null"] },
+        "nonDeductibleAmount": { "type": ["number", "null"] }
+      }
+    },
+    "expenseItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "quantity", "unitPriceNet", "vatTreatmentCode", "lineNet", "lineVat", "lineGross"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "quantity": { "type": "number", "exclusiveMinimum": 0 },
+        "unitPriceNet": { "type": "number" },
+        "vatRateCode": { "type": ["string", "null"], "enum": ["SK-23", "SK-19", "SK-5", "SK-0", "SK-RC", null] },
+        "vatTreatmentCode": { "$ref": "#/$defs/vatTreatmentCode" },
+        "taxDeductibility": {
+          "type": "string",
+          "enum": ["fully_deductible", "partially_deductible", "non_deductible", "review_required"]
+        },
+        "lineNet": { "type": "number" },
+        "lineVat": { "type": "number" },
+        "lineGross": { "type": "number" }
+      }
+    },
+    "expenseAttachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "expenseId", "fileId", "fileHash", "attachmentType", "uploadedAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "expenseId": { "type": "string", "format": "uuid" },
+        "fileId": { "type": "string", "format": "uuid" },
+        "fileHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "attachmentType": { "type": "string", "enum": ["invoice_pdf", "receipt_photo", "bank_confirmation", "other"] },
+        "uploadedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

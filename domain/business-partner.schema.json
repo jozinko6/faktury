@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/business-partner.schema.json",
+  "title": "Business partner",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["partner", "addresses", "contacts", "bankAccounts", "taxIds"],
+  "properties": {
+    "partner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "legalName",
+        "displayName",
+        "country",
+        "partnerType",
+        "language",
+        "defaultDueDays",
+        "defaultCurrency",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "legalName": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "ico": { "$ref": "#/$defs/ico" },
+        "dic": { "$ref": "#/$defs/dic" },
+        "icDph": { "$ref": "#/$defs/icDph" },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+        "partnerType": {
+          "type": "string",
+          "enum": ["customer", "supplier", "both"]
+        },
+        "language": { "$ref": "#/$defs/language" },
+        "defaultDueDays": { "type": "integer", "minimum": 0, "maximum": 365 },
+        "defaultCurrency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "note": { "type": ["string", "null"], "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "addresses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/address" }
+    },
+    "contacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contact" }
+    },
+    "bankAccounts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/bankAccount" }
+    },
+    "taxIds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/taxId" }
+    },
+    "riskFlags": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/riskFlag" }
+    },
+    "documentSnapshot": {
+      "$ref": "#/$defs/documentSnapshot"
+    }
+  },
+  "$defs": {
+    "language": {
+      "type": "string",
+      "enum": ["SK", "EN", "CZ", "DE", "HU"]
+    },
+    "ico": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{8}$"
+    },
+    "dic": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{10}$"
+    },
+    "icDph": {
+      "type": ["string", "null"],
+      "pattern": "^SK[0-9]{10}$"
+    },
+    "address": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["addressType", "city", "postalCode", "country"],
+      "properties": {
+        "addressType": {
+          "type": "string",
+          "enum": ["registered", "billing", "delivery", "correspondence"]
+        },
+        "street": { "type": ["string", "null"], "maxLength": 120 },
+        "streetNumber": { "type": ["string", "null"], "maxLength": 30 },
+        "city": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "postalCode": { "type": "string", "minLength": 3, "maxLength": 20 },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contactType"],
+      "properties": {
+        "contactType": {
+          "type": "string",
+          "enum": ["billing_email", "business", "technical", "accountant", "statutory"]
+        },
+        "name": { "type": ["string", "null"], "maxLength": 120 },
+        "email": { "type": ["string", "null"], "format": "email" },
+        "phone": { "type": ["string", "null"], "maxLength": 40 },
+        "isPrimary": { "type": "boolean" }
+      }
+    },
+    "bankAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iban", "currency", "isDefault", "isVerified"],
+      "properties": {
+        "iban": { "type": "string", "minLength": 15, "maxLength": 34 },
+        "bic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+        "bankName": { "type": ["string", "null"], "maxLength": 120 },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "isDefault": { "type": "boolean" },
+        "isVerified": { "type": "boolean" },
+        "validFrom": { "type": ["string", "null"], "format": "date" },
+        "validTo": { "type": ["string", "null"], "format": "date" }
+      }
+    },
+    "taxId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value", "country"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ico", "dic", "ic_dph", "foreign_vat_id", "other"]
+        },
+        "value": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+        "verifiedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "riskFlag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "severity": { "type": "string", "enum": ["info", "warning", "blocker"] },
+        "note": { "type": ["string", "null"], "maxLength": 500 }
+      }
+    },
+    "documentSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["legalName", "country", "capturedAt"],
+      "properties": {
+        "legalName": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "displayName": { "type": ["string", "null"], "maxLength": 190 },
+        "ico": { "$ref": "#/$defs/ico" },
+        "dic": { "$ref": "#/$defs/dic" },
+        "icDph": { "$ref": "#/$defs/icDph" },
+        "address": { "$ref": "#/$defs/address" },
+        "bankAccount": { "$ref": "#/$defs/bankAccount" },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+        "capturedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

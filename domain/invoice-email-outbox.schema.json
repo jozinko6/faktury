@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/invoice-email-outbox.schema.json",
+  "title": "Invoice email outbox",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["invoiceIssuedEvent", "emailJob", "emailLog"],
+  "properties": {
+    "invoiceIssuedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "invoiceId",
+        "invoiceNumber",
+        "pdfVersionId",
+        "occurredAt",
+        "createdBy"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "invoiceId": { "type": "string", "format": "uuid" },
+        "invoiceNumber": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "pdfVersionId": { "type": "string", "format": "uuid" },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string", "format": "uuid" }
+      }
+    },
+    "emailJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "eventId",
+        "invoiceId",
+        "templateCode",
+        "language",
+        "to",
+        "subject",
+        "status",
+        "attemptCount",
+        "maxAttempts",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "eventId": { "type": "string", "format": "uuid" },
+        "invoiceId": { "type": "string", "format": "uuid" },
+        "pdfVersionId": { "type": "string", "format": "uuid" },
+        "templateCode": {
+          "type": "string",
+          "enum": ["invoice_send", "first_reminder", "second_reminder", "formal_notice", "payment_thanks"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["SK", "EN", "CZ", "DE", "HU"]
+        },
+        "to": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/emailAddress" }
+        },
+        "cc": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/emailAddress" }
+        },
+        "bcc": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/emailAddress" }
+        },
+        "replyTo": { "$ref": "#/$defs/nullableEmailAddress" },
+        "subject": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "bodyHtmlSnapshot": { "type": ["string", "null"] },
+        "bodyTextSnapshot": { "type": "string", "minLength": 1 },
+        "attachmentFileIds": {
+          "type": "array",
+          "items": { "type": "string", "format": "uuid" }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["queued", "processing", "sent", "failed", "cancelled"]
+        },
+        "attemptCount": { "type": "integer", "minimum": 0 },
+        "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "nextAttemptAt": { "type": ["string", "null"], "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "processedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "emailLog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "emailJobId", "status", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "emailJobId": { "type": "string", "format": "uuid" },
+        "providerMessageId": { "type": ["string", "null"], "maxLength": 190 },
+        "status": {
+          "type": "string",
+          "enum": ["queued", "processing", "sent", "failed", "cancelled"]
+        },
+        "smtpResponse": { "type": ["string", "null"], "maxLength": 2000 },
+        "errorCode": { "type": ["string", "null"], "maxLength": 80 },
+        "errorMessage": { "type": ["string", "null"], "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "emailTemplate": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["code", "language", "subjectTemplate", "bodyTextTemplate"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": ["invoice_send", "first_reminder", "second_reminder", "formal_notice", "payment_thanks"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["SK", "EN", "CZ", "DE", "HU"]
+        },
+        "subjectTemplate": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "bodyHtmlTemplate": { "type": ["string", "null"] },
+        "bodyTextTemplate": { "type": "string", "minLength": 1 },
+        "allowedVariables": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "invoice.number",
+              "invoice.total",
+              "invoice.due_date",
+              "payment.iban",
+              "payment.variable_symbol",
+              "client.name"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "emailAddress": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 190
+    },
+    "nullableEmailAddress": {
+      "type": ["string", "null"],
+      "format": "email",
+      "maxLength": 190
+    }
+  }
+}

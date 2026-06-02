@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/invoice.schema.json",
+  "title": "Issued invoice",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["invoice", "items", "totals"],
+  "properties": {
+    "invoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "customerId",
+        "type",
+        "status",
+        "currency",
+        "issueDate",
+        "deliveryDate",
+        "dueDate",
+        "paymentMethod",
+        "vatMode",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "customerId": { "type": "string", "format": "uuid" },
+        "type": { "$ref": "#/$defs/invoiceType" },
+        "status": { "$ref": "#/$defs/invoiceStatus" },
+        "number": {
+          "type": ["string", "null"],
+          "maxLength": 40,
+          "description": "Draft invoices must keep this null. Number is assigned only during issue."
+        },
+        "variableSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "constantSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "specificSymbol": { "type": ["string", "null"], "maxLength": 20 },
+        "currency": { "const": "EUR" },
+        "issueDate": { "type": "string", "format": "date" },
+        "deliveryDate": { "type": "string", "format": "date" },
+        "taxPointDate": { "type": ["string", "null"], "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["bank_transfer", "cash", "card", "other"]
+        },
+        "vatMode": {
+          "type": "string",
+          "enum": ["non_payer", "payer", "section_7", "section_7a"]
+        },
+        "language": {
+          "type": "string",
+          "enum": ["SK", "EN", "CZ", "DE", "HU"],
+          "default": "SK"
+        },
+        "clientNote": { "type": ["string", "null"], "maxLength": 2000 },
+        "internalNote": { "type": ["string", "null"], "maxLength": 2000 },
+        "issuedAt": { "type": ["string", "null"], "format": "date-time" },
+        "sentAt": { "type": ["string", "null"], "format": "date-time" },
+        "paidAt": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Informational only. Payment allocations are the source of truth."
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/invoiceItem" }
+    },
+    "totals": { "$ref": "#/$defs/invoiceTotals" },
+    "issueSnapshot": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "supplierSnapshot",
+        "customerSnapshot",
+        "bankSnapshot",
+        "vatSnapshot",
+        "itemsSnapshot",
+        "totalsSnapshot",
+        "textsSnapshot",
+        "capturedAt"
+      ],
+      "properties": {
+        "supplierSnapshot": { "$ref": "#/$defs/partySnapshot" },
+        "customerSnapshot": { "$ref": "#/$defs/partySnapshot" },
+        "bankSnapshot": { "$ref": "#/$defs/bankSnapshot" },
+        "vatSnapshot": { "$ref": "#/$defs/vatSnapshot" },
+        "itemsSnapshot": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/itemSnapshot" }
+        },
+        "totalsSnapshot": { "$ref": "#/$defs/invoiceTotals" },
+        "textsSnapshot": { "$ref": "#/$defs/textsSnapshot" },
+        "templateVersion": { "type": ["string", "null"], "maxLength": 40 },
+        "capturedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "invoiceType": {
+      "type": "string",
+      "enum": ["invoice", "proforma", "credit_note", "corrective_invoice", "cancellation"]
+    },
+    "invoiceStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready",
+        "issued",
+        "sent",
+        "delivered",
+        "partially_paid",
+        "paid",
+        "overdue",
+        "overpaid",
+        "cancelled",
+        "corrected",
+        "locked"
+      ]
+    },
+    "invoiceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "quantity",
+        "unit",
+        "unitPriceNet",
+        "vatRateCode",
+        "vatTreatmentCode",
+        "lineNet",
+        "lineVat",
+        "lineGross"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "quantity": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "unitPriceNet": { "type": "number" },
+        "discountPercent": { "type": "number", "minimum": 0, "maximum": 100, "default": 0 },
+        "vatRateCode": {
+          "type": "string",
+          "enum": ["SK-23", "SK-19", "SK-5", "SK-0", "SK-RC"]
+        },
+        "vatTreatmentCode": {
+          "type": "string",
+          "enum": [
+            "domestic_goods_or_services",
+            "domestic_reduced_rate",
+            "exempt_supply",
+            "reverse_charge_eu_service",
+            "reverse_charge_domestic",
+            "outside_scope",
+            "non_vat_payer_invoice",
+            "import_service",
+            "eu_goods"
+          ]
+        },
+        "businessCategoryId": { "type": ["string", "null"], "format": "uuid" },
+        "projectId": { "type": ["string", "null"], "format": "uuid" },
+        "costCenterId": { "type": ["string", "null"], "format": "uuid" },
+        "lineNet": { "type": "number" },
+        "lineVat": { "type": "number" },
+        "lineGross": { "type": "number" }
+      }
+    },
+    "invoiceTotals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "netTotal",
+        "vatTotal",
+        "grossTotal",
+        "allocatedPaymentsTotal",
+        "creditNotesTotal",
+        "remainingBalance"
+      ],
+      "properties": {
+        "netTotal": { "type": "number" },
+        "vatTotal": { "type": "number" },
+        "grossTotal": { "type": "number" },
+        "allocatedPaymentsTotal": { "type": "number", "minimum": 0 },
+        "creditNotesTotal": { "type": "number", "minimum": 0 },
+        "remainingBalance": {
+          "type": "number",
+          "description": "grossTotal - allocatedPaymentsTotal - creditNotesTotal"
+        },
+        "roundingDifference": { "type": "number", "default": 0 }
+      }
+    },
+    "partySnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["legalName", "country"],
+      "properties": {
+        "legalName": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "displayName": { "type": ["string", "null"], "maxLength": 190 },
+        "ico": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{8}$"
+        },
+        "dic": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{10}$"
+        },
+        "icDph": {
+          "type": ["string", "null"],
+          "pattern": "^SK[0-9]{10}$"
+        },
+        "address": { "$ref": "#/$defs/addressSnapshot" },
+        "registrationText": { "type": ["string", "null"], "maxLength": 500 },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 }
+      }
+    },
+    "addressSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["city", "postalCode", "country"],
+      "properties": {
+        "street": { "type": ["string", "null"], "maxLength": 120 },
+        "streetNumber": { "type": ["string", "null"], "maxLength": 30 },
+        "city": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "postalCode": { "type": "string", "minLength": 3, "maxLength": 20 },
+        "country": { "type": "string", "minLength": 2, "maxLength": 2 }
+      }
+    },
+    "bankSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iban", "currency"],
+      "properties": {
+        "iban": { "type": "string", "minLength": 15, "maxLength": 34 },
+        "bic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+        "bankName": { "type": ["string", "null"], "maxLength": 120 },
+        "currency": { "const": "EUR" }
+      }
+    },
+    "vatSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vatMode", "rates", "treatments"],
+      "properties": {
+        "vatMode": {
+          "type": "string",
+          "enum": ["non_payer", "payer", "section_7", "section_7a"]
+        },
+        "rates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "ratePercent", "label"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": ["SK-23", "SK-19", "SK-5", "SK-0", "SK-RC"]
+              },
+              "ratePercent": { "type": "number" },
+              "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+              "isReverseCharge": { "type": "boolean" }
+            }
+          }
+        },
+        "treatments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "name"],
+            "properties": {
+              "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "reverseCharge": { "type": "boolean" },
+              "outsideScope": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "itemSnapshot": {
+      "allOf": [{ "$ref": "#/$defs/invoiceItem" }]
+    },
+    "textsSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nonVatPayer": { "type": ["string", "null"], "maxLength": 500 },
+        "reverseCharge": { "type": ["string", "null"], "maxLength": 500 },
+        "exemptSupply": { "type": ["string", "null"], "maxLength": 500 },
+        "supplierRegistration": { "type": ["string", "null"], "maxLength": 500 },
+        "clientNote": { "type": ["string", "null"], "maxLength": 2000 }
+      }
+    }
+  }
+}

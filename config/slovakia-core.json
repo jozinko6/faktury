@@ -1,0 +1,218 @@
+{
+  "country": "SK",
+  "defaultCurrency": "EUR",
+  "defaultLocale": "sk-SK",
+  "supportedLanguages": ["SK", "EN", "CZ", "DE", "HU"],
+  "taxIdentifiers": {
+    "companyId": {
+      "label": "IČO",
+      "pattern": "^[0-9]{8}$"
+    },
+    "taxId": {
+      "label": "DIČ",
+      "pattern": "^[0-9]{10}$"
+    },
+    "vatId": {
+      "label": "IČ DPH",
+      "pattern": "^SK[0-9]{10}$"
+    }
+  },
+  "banking": {
+    "accountIdentifier": "IBAN",
+    "swiftIdentifier": "BIC/SWIFT",
+    "symbols": ["variable", "specific", "constant"],
+    "paymentQr": "SEPA"
+  },
+  "invoiceNumberSeries": {
+    "issuedInvoice": {
+      "code": "FA",
+      "exampleFormat": "FA-YYYY-000001",
+      "assignOn": "issue"
+    },
+    "creditNote": {
+      "code": "DOB",
+      "exampleFormat": "DOB-YYYY-000001",
+      "assignOn": "issue"
+    }
+  },
+  "vatRates": [
+    {
+      "code": "SK-23",
+      "country": "SK",
+      "ratePercent": 23,
+      "validFrom": "2025-01-01",
+      "validTo": null,
+      "isDefault": true,
+      "isReverseCharge": false,
+      "label": "základná sadzba"
+    },
+    {
+      "code": "SK-19",
+      "country": "SK",
+      "ratePercent": 19,
+      "validFrom": "2025-01-01",
+      "validTo": null,
+      "isDefault": false,
+      "isReverseCharge": false,
+      "label": "znížená sadzba"
+    },
+    {
+      "code": "SK-5",
+      "country": "SK",
+      "ratePercent": 5,
+      "validFrom": "2025-01-01",
+      "validTo": null,
+      "isDefault": false,
+      "isReverseCharge": false,
+      "label": "znížená sadzba"
+    },
+    {
+      "code": "SK-0",
+      "country": "SK",
+      "ratePercent": 0,
+      "validFrom": "2025-01-01",
+      "validTo": null,
+      "isDefault": false,
+      "isReverseCharge": false,
+      "label": "oslobodené / mimo DPH"
+    },
+    {
+      "code": "SK-RC",
+      "country": "SK",
+      "ratePercent": 0,
+      "validFrom": "2025-01-01",
+      "validTo": null,
+      "isDefault": false,
+      "isReverseCharge": true,
+      "label": "prenesenie daňovej povinnosti"
+    }
+  ],
+  "vatModes": [
+    "non_payer",
+    "payer",
+    "section_7",
+    "section_7a",
+    "domestic_standard",
+    "domestic_reduced",
+    "domestic_zero",
+    "reverse_charge",
+    "eu_service",
+    "eu_goods",
+    "import_service",
+    "outside_eu",
+    "exempt",
+    "outside_scope"
+  ],
+  "vatTreatments": [
+    {
+      "code": "domestic_goods_or_services",
+      "name": "Tuzemské dodanie tovaru alebo služby",
+      "affectsVatReturn": true,
+      "affectsControlStatement": true,
+      "affectsSummaryStatement": false,
+      "reverseCharge": false,
+      "outsideScope": false
+    },
+    {
+      "code": "domestic_reduced_rate",
+      "name": "Tuzemské dodanie so zníženou sadzbou",
+      "affectsVatReturn": true,
+      "affectsControlStatement": true,
+      "affectsSummaryStatement": false,
+      "reverseCharge": false,
+      "outsideScope": false
+    },
+    {
+      "code": "exempt_supply",
+      "name": "Dodanie oslobodené od dane",
+      "affectsVatReturn": true,
+      "affectsControlStatement": false,
+      "affectsSummaryStatement": false,
+      "reverseCharge": false,
+      "outsideScope": false
+    },
+    {
+      "code": "reverse_charge_eu_service",
+      "name": "Prenesenie daňovej povinnosti pri službe z EÚ",
+      "affectsVatReturn": true,
+      "affectsControlStatement": false,
+      "affectsSummaryStatement": true,
+      "reverseCharge": true,
+      "outsideScope": false
+    },
+    {
+      "code": "reverse_charge_domestic",
+      "name": "Tuzemské prenesenie daňovej povinnosti",
+      "affectsVatReturn": true,
+      "affectsControlStatement": true,
+      "affectsSummaryStatement": false,
+      "reverseCharge": true,
+      "outsideScope": false
+    },
+    {
+      "code": "outside_scope",
+      "name": "Mimo predmetu DPH",
+      "affectsVatReturn": false,
+      "affectsControlStatement": false,
+      "affectsSummaryStatement": false,
+      "reverseCharge": false,
+      "outsideScope": true
+    },
+    {
+      "code": "non_vat_payer_invoice",
+      "name": "Faktúra neplatiteľa DPH",
+      "affectsVatReturn": false,
+      "affectsControlStatement": false,
+      "affectsSummaryStatement": false,
+      "reverseCharge": false,
+      "outsideScope": false
+    },
+    {
+      "code": "import_service",
+      "name": "Prijatá služba zo zahraničia",
+      "affectsVatReturn": true,
+      "affectsControlStatement": false,
+      "affectsSummaryStatement": false,
+      "reverseCharge": true,
+      "outsideScope": false
+    },
+    {
+      "code": "eu_goods",
+      "name": "Tovar z EÚ",
+      "affectsVatReturn": true,
+      "affectsControlStatement": false,
+      "affectsSummaryStatement": true,
+      "reverseCharge": true,
+      "outsideScope": false
+    }
+  ],
+  "invoiceTexts": {
+    "nonVatPayer": "Nie som platiteľom DPH.",
+    "reverseCharge": "Prenesenie daňovej povinnosti.",
+    "exemptSupply": "Dodanie je oslobodené od dane.",
+    "tradeRegister": "Dodávateľ je zapísaný v živnostenskom registri.",
+    "businessRegister": "Spoločnosť je zapísaná v obchodnom registri."
+  },
+  "uiTerms": {
+    "supplier": "Dodávateľ",
+    "customer": "Odberateľ",
+    "issueDate": "Dátum vystavenia",
+    "deliveryDate": "Dátum dodania",
+    "dueDate": "Dátum splatnosti",
+    "paymentMethod": "Forma úhrady",
+    "variableSymbol": "Variabilný symbol",
+    "constantSymbol": "Konštantný symbol",
+    "specificSymbol": "Špecifický symbol",
+    "vatRate": "Sadzba DPH",
+    "taxBase": "Základ dane",
+    "vat": "DPH",
+    "amountDue": "Celkom na úhradu",
+    "invoice": "Faktúra",
+    "proformaInvoice": "Zálohová faktúra",
+    "correctiveInvoice": "Opravná faktúra",
+    "creditNote": "Dobropis",
+    "receivedInvoice": "Prijatá faktúra",
+    "expense": "Výdavok",
+    "payment": "Úhrada"
+  }
+}

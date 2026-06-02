@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/organization-profile.schema.json",
+  "title": "Organization and Slovak tax profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["organization", "profile", "taxProfile"],
+  "properties": {
+    "organization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "legalName",
+        "legalForm",
+        "country",
+        "defaultCurrency",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "legalName": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "tradeName": { "type": ["string", "null"], "maxLength": 190 },
+        "legalForm": { "$ref": "#/$defs/legalForm" },
+        "ico": { "$ref": "#/$defs/ico" },
+        "dic": { "$ref": "#/$defs/dic" },
+        "icDph": { "$ref": "#/$defs/icDph" },
+        "country": { "const": "SK" },
+        "defaultCurrency": { "const": "EUR" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organizationId", "businessRegister", "primaryBankAccount"],
+      "properties": {
+        "organizationId": { "type": "string", "format": "uuid" },
+        "businessRegister": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["trade_register", "business_register", "other", "none"]
+            },
+            "registrationText": { "type": ["string", "null"], "maxLength": 500 }
+          }
+        },
+        "primaryBankAccount": { "$ref": "#/$defs/bankAccount" },
+        "invoiceLanguage": { "$ref": "#/$defs/language" },
+        "emailLanguage": { "$ref": "#/$defs/language" }
+      }
+    },
+    "taxProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organizationId",
+        "validFrom",
+        "legalForm",
+        "accountingMode",
+        "vatMode",
+        "vatPeriodicity",
+        "incomeTaxMode"
+      ],
+      "properties": {
+        "organizationId": { "type": "string", "format": "uuid" },
+        "validFrom": { "type": "string", "format": "date" },
+        "validTo": { "type": ["string", "null"], "format": "date" },
+        "legalForm": { "$ref": "#/$defs/legalForm" },
+        "accountingMode": { "$ref": "#/$defs/accountingMode" },
+        "vatMode": { "$ref": "#/$defs/vatMode" },
+        "vatPeriodicity": {
+          "type": "string",
+          "enum": ["monthly", "quarterly", "none"]
+        },
+        "incomeTaxMode": {
+          "type": "string",
+          "enum": ["flat_expenses", "actual_expenses", "corporate_income_tax"]
+        }
+      }
+    },
+    "taxProfileHistory": {
+      "type": "array",
+      "items": { "$ref": "#/properties/taxProfile" }
+    }
+  },
+  "$defs": {
+    "legalForm": {
+      "type": "string",
+      "enum": ["sole_trader", "sro", "other"]
+    },
+    "accountingMode": {
+      "type": "string",
+      "enum": [
+        "flat_expenses",
+        "tax_evidence",
+        "simple_accounting",
+        "double_entry"
+      ]
+    },
+    "vatMode": {
+      "type": "string",
+      "enum": ["non_payer", "payer", "section_7", "section_7a"]
+    },
+    "language": {
+      "type": "string",
+      "enum": ["SK", "EN", "CZ", "DE", "HU"]
+    },
+    "ico": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{8}$"
+    },
+    "dic": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]{10}$"
+    },
+    "icDph": {
+      "type": ["string", "null"],
+      "pattern": "^SK[0-9]{10}$"
+    },
+    "bankAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iban", "currency", "isDefault"],
+      "properties": {
+        "iban": { "type": "string", "minLength": 15, "maxLength": 34 },
+        "bic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+        "bankName": { "type": ["string", "null"], "maxLength": 120 },
+        "currency": { "const": "EUR" },
+        "isDefault": { "type": "boolean" },
+        "validFrom": { "type": ["string", "null"], "format": "date" },
+        "validTo": { "type": ["string", "null"], "format": "date" }
+      }
+    }
+  }
+}

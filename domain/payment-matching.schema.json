@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/payment-matching.schema.json",
+  "title": "Payment matching and allocations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["matchingCandidate", "matchDecision", "payment", "paymentAllocation", "invoiceBalance"],
+  "properties": {
+    "matchingCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "bankTransactionId",
+        "candidateType",
+        "candidateDocumentId",
+        "confidenceScore",
+        "scoreReasons",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "bankTransactionId": { "type": "string", "format": "uuid" },
+        "candidateType": {
+          "type": "string",
+          "enum": ["issued_invoice", "received_invoice", "expense", "internal_transfer", "bank_fee", "unknown"]
+        },
+        "candidateDocumentId": { "type": ["string", "null"], "format": "uuid" },
+        "confidenceScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "scoreReasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "variable_symbol_match",
+              "amount_match",
+              "iban_match",
+              "counterparty_name_similarity",
+              "date_proximity",
+              "currency_match",
+              "historical_rule_match",
+              "missing_variable_symbol"
+            ]
+          }
+        },
+        "suggestedAllocationAmount": { "type": ["number", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "matchDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "bankTransactionId",
+        "decision",
+        "confidenceScore",
+        "decidedBy",
+        "decidedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "bankTransactionId": { "type": "string", "format": "uuid" },
+        "matchingCandidateId": { "type": ["string", "null"], "format": "uuid" },
+        "decision": {
+          "type": "string",
+          "enum": ["confirmed", "rejected", "ignored", "needs_document", "internal_transfer"]
+        },
+        "confidenceScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "reason": { "type": ["string", "null"], "maxLength": 500 },
+        "decidedBy": { "type": "string", "format": "uuid" },
+        "decidedAt": { "type": "string", "format": "date-time" },
+        "unmatchedBy": { "type": ["string", "null"], "format": "uuid" },
+        "unmatchedAt": { "type": ["string", "null"], "format": "date-time" },
+        "unmatchReason": { "type": ["string", "null"], "maxLength": 500 }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "bankTransactionId",
+        "amount",
+        "currency",
+        "paymentDate",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "bankTransactionId": { "type": "string", "format": "uuid" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "paymentDate": { "type": "string", "format": "date" },
+        "status": {
+          "type": "string",
+          "enum": ["unallocated", "partially_allocated", "allocated", "overallocated", "refunded", "cancelled"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "paymentAllocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "paymentId",
+        "documentType",
+        "documentId",
+        "amount",
+        "currency",
+        "allocatedBy",
+        "allocatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "paymentId": { "type": "string", "format": "uuid" },
+        "documentType": {
+          "type": "string",
+          "enum": ["issued_invoice", "received_invoice", "expense"]
+        },
+        "documentId": { "type": "string", "format": "uuid" },
+        "amount": { "type": "number", "exclusiveMinimum": 0 },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "allocatedBy": { "type": "string", "format": "uuid" },
+        "allocatedAt": { "type": "string", "format": "date-time" },
+        "voidedBy": { "type": ["string", "null"], "format": "uuid" },
+        "voidedAt": { "type": ["string", "null"], "format": "date-time" },
+        "voidReason": { "type": ["string", "null"], "maxLength": 500 }
+      }
+    },
+    "invoiceBalance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "invoiceId",
+        "invoiceTotal",
+        "allocatedPaymentsTotal",
+        "creditNotesTotal",
+        "remainingBalance",
+        "derivedStatus"
+      ],
+      "properties": {
+        "invoiceId": { "type": "string", "format": "uuid" },
+        "invoiceTotal": { "type": "number" },
+        "allocatedPaymentsTotal": { "type": "number", "minimum": 0 },
+        "creditNotesTotal": { "type": "number", "minimum": 0 },
+        "remainingBalance": {
+          "type": "number",
+          "description": "invoiceTotal - allocatedPaymentsTotal - creditNotesTotal"
+        },
+        "derivedStatus": {
+          "type": "string",
+          "enum": ["unpaid", "partially_paid", "paid", "overpaid"]
+        }
+      }
+    }
+  }
+}

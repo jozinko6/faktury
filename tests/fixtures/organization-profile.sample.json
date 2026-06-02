@@ -1,0 +1,44 @@
+{
+  "organization": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "legalName": "Demo Uctovnik s.r.o.",
+    "tradeName": "Demo Uctovnik",
+    "legalForm": "sro",
+    "ico": "12345678",
+    "dic": "2123456789",
+    "icDph": "SK2123456789",
+    "country": "SK",
+    "defaultCurrency": "EUR",
+    "createdAt": "2026-01-01T09:00:00Z",
+    "updatedAt": "2026-01-01T09:00:00Z"
+  },
+  "profile": {
+    "organizationId": "11111111-1111-4111-8111-111111111111",
+    "businessRegister": {
+      "type": "business_register",
+      "registrationText": "Obchodny register Okresneho sudu Bratislava I, oddiel Sro, vlozka 12345/B"
+    },
+    "primaryBankAccount": {
+      "iban": "SK8975000000000012345671",
+      "bic": "CEKOSKBX",
+      "bankName": "Cesko-slovenska obchodna banka, a.s.",
+      "currency": "EUR",
+      "isDefault": true,
+      "validFrom": "2026-01-01",
+      "validTo": null
+    },
+    "invoiceLanguage": "SK",
+    "emailLanguage": "SK"
+  },
+  "taxProfile": {
+    "organizationId": "11111111-1111-4111-8111-111111111111",
+    "validFrom": "2026-01-01",
+    "validTo": null,
+    "legalForm": "sro",
+    "accountingMode": "simple_accounting",
+    "vatMode": "payer",
+    "vatPeriodicity": "monthly",
+    "incomeTaxMode": "corporate_income_tax"
+  },
+  "taxProfileHistory": []
+}

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/simple-accounting.schema.json",
+  "title": "Simple accounting skeleton",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["cashbookEntry", "receivable", "payable", "category"],
+  "properties": {
+    "cashbookEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "entryDate",
+        "direction",
+        "cashbookType",
+        "amount",
+        "currency",
+        "categoryId",
+        "sourceDocumentType",
+        "sourceDocumentId",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "entryDate": { "type": "string", "format": "date" },
+        "direction": { "type": "string", "enum": ["income", "expense"] },
+        "cashbookType": {
+          "type": "string",
+          "enum": [
+            "taxable_income",
+            "non_taxable_income",
+            "tax_deductible_expense",
+            "non_deductible_expense",
+            "internal_transfer",
+            "vat",
+            "personal_consumption",
+            "owner_deposit"
+          ]
+        },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "categoryId": { "type": "string", "format": "uuid" },
+        "sourceDocumentType": {
+          "type": "string",
+          "enum": ["issued_invoice", "received_invoice", "expense", "bank_transaction", "internal_document"]
+        },
+        "sourceDocumentId": { "type": "string", "format": "uuid" },
+        "note": { "type": ["string", "null"], "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "receivable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "partnerId", "invoiceId", "amount", "currency", "status"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "partnerId": { "type": "string", "format": "uuid" },
+        "invoiceId": { "type": "string", "format": "uuid" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "dueDate": { "type": ["string", "null"], "format": "date" },
+        "paidAmount": { "type": "number", "minimum": 0, "default": 0 },
+        "status": { "type": "string", "enum": ["open", "partially_paid", "paid", "overdue", "written_off"] }
+      }
+    },
+    "payable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "partnerId", "sourceDocumentId", "amount", "currency", "status"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "partnerId": { "type": "string", "format": "uuid" },
+        "sourceDocumentType": { "type": "string", "enum": ["received_invoice", "expense"] },
+        "sourceDocumentId": { "type": "string", "format": "uuid" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "dueDate": { "type": ["string", "null"], "format": "date" },
+        "paidAmount": { "type": "number", "minimum": 0, "default": 0 },
+        "status": { "type": "string", "enum": ["open", "partially_paid", "paid", "overdue", "written_off"] }
+      }
+    },
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "name", "cashbookType", "taxDeductibility"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "cashbookType": {
+          "type": "string",
+          "enum": [
+            "taxable_income",
+            "non_taxable_income",
+            "tax_deductible_expense",
+            "non_deductible_expense",
+            "internal_transfer",
+            "vat",
+            "personal_consumption",
+            "owner_deposit"
+          ]
+        },
+        "taxDeductibility": {
+          "type": "string",
+          "enum": ["fully_deductible", "partially_deductible", "non_deductible", "not_applicable", "review_required"]
+        },
+        "isActive": { "type": "boolean", "default": true }
+      }
+    },
+    "incomeExpenseRecord": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "recordDate", "direction", "amount", "currency", "cashbookEntryId"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "recordDate": { "type": "string", "format": "date" },
+        "direction": { "type": "string", "enum": ["income", "expense"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+        "cashbookEntryId": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

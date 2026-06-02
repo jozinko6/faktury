@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/vat-report.schema.json",
+  "title": "VAT report skeleton",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["vatPeriod", "vatEntries", "vatSummary", "vatExport"],
+  "properties": {
+    "vatPeriod": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "periodKey",
+        "periodicity",
+        "status",
+        "dateFrom",
+        "dateTo",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "periodKey": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-((0[1-9]|1[0-2])|Q[1-4])$",
+          "description": "Examples: 2026-01 or 2026-Q1."
+        },
+        "periodicity": { "type": "string", "enum": ["monthly", "quarterly"] },
+        "status": {
+          "type": "string",
+          "enum": ["open", "prepared", "reviewed", "exported", "locked"]
+        },
+        "dateFrom": { "type": "string", "format": "date" },
+        "dateTo": { "type": "string", "format": "date" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "vatEntries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/vatEntry" }
+    },
+    "vatSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vatPeriodId",
+        "outputVatTotal",
+        "inputVatTotal",
+        "reverseChargeTotal",
+        "netVatDue",
+        "byTreatment"
+      ],
+      "properties": {
+        "vatPeriodId": { "type": "string", "format": "uuid" },
+        "outputVatTotal": { "type": "number" },
+        "inputVatTotal": { "type": "number" },
+        "reverseChargeTotal": { "type": "number" },
+        "netVatDue": {
+          "type": "number",
+          "description": "outputVatTotal - inputVatTotal, before any later statutory adjustments."
+        },
+        "byTreatment": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/vatTreatmentSummary" }
+        },
+        "generatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "vatExport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "vatPeriodId",
+        "format",
+        "fileId",
+        "fileHash",
+        "createdBy",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "vatPeriodId": { "type": "string", "format": "uuid" },
+        "format": { "type": "string", "enum": ["xlsx", "csv"] },
+        "fileId": { "type": "string", "format": "uuid" },
+        "fileHash": { "$ref": "#/$defs/sha256" },
+        "createdBy": { "type": "string", "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "vatEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "vatPeriodId",
+        "sourceDocumentType",
+        "sourceDocumentId",
+        "direction",
+        "vatRateCode",
+        "vatTreatmentCode",
+        "taxBase",
+        "vatAmount",
+        "taxPointDate"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "vatPeriodId": { "type": "string", "format": "uuid" },
+        "sourceDocumentType": {
+          "type": "string",
+          "enum": ["issued_invoice", "received_invoice", "expense", "credit_note", "internal_document"]
+        },
+        "sourceDocumentId": { "type": "string", "format": "uuid" },
+        "direction": { "type": "string", "enum": ["output", "input"] },
+        "vatRateCode": { "type": "string", "enum": ["SK-23", "SK-19", "SK-5", "SK-0", "SK-RC"] },
+        "vatTreatmentCode": {
+          "type": "string",
+          "enum": [
+            "domestic_goods_or_services",
+            "domestic_reduced_rate",
+            "exempt_supply",
+            "reverse_charge_eu_service",
+            "reverse_charge_domestic",
+            "outside_scope",
+            "non_vat_payer_invoice",
+            "import_service",
+            "eu_goods"
+          ]
+        },
+        "taxBase": { "type": "number" },
+        "vatAmount": { "type": "number" },
+        "taxPointDate": { "type": "string", "format": "date" },
+        "reverseCharge": { "type": "boolean", "default": false },
+        "includedInVatReturn": { "type": "boolean", "default": true }
+      }
+    },
+    "vatTreatmentSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vatTreatmentCode", "taxBase", "vatAmount", "documentCount"],
+      "properties": {
+        "vatTreatmentCode": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "taxBase": { "type": "number" },
+        "vatAmount": { "type": "number" },
+        "documentCount": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

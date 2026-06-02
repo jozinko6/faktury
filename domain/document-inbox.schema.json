@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/document-inbox.schema.json",
+  "title": "Document inbox",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["inboxItem", "document", "files", "links"],
+  "properties": {
+    "inboxItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "documentId",
+        "source",
+        "status",
+        "accountingImpact",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "documentId": { "type": "string", "format": "uuid" },
+        "source": {
+          "type": "string",
+          "enum": ["upload", "email", "bank_transaction", "manual", "ocr_result"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "recognized", "needs_info", "needs_category", "needs_approval", "approved", "posted", "archived"]
+        },
+        "accountingImpact": {
+          "type": "string",
+          "enum": ["unknown", "none", "business_document", "accounting_document"]
+        },
+        "assignedTo": { "type": ["string", "null"], "format": "uuid" },
+        "closedReason": { "type": ["string", "null"], "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "organizationId", "documentType", "title", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "documentType": {
+          "type": "string",
+          "enum": ["pdf", "scan", "photo", "email", "contract", "order", "delivery_note", "quote", "invoice", "receipt", "other"]
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "documentDate": { "type": ["string", "null"], "format": "date" },
+        "recognizedText": { "type": ["string", "null"] },
+        "recognitionSource": {
+          "type": ["string", "null"],
+          "enum": ["manual", "ocr", "email_parser", "bank_context", null]
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/documentFile" }
+    },
+    "links": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/documentLink" }
+    },
+    "comments": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/documentComment" }
+    },
+    "questions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/documentQuestion" }
+    }
+  },
+  "$defs": {
+    "documentFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "documentId", "fileId", "fileHash", "mimeType", "uploadedBy", "uploadedAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "documentId": { "type": "string", "format": "uuid" },
+        "fileId": { "type": "string", "format": "uuid" },
+        "fileHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "originalFileName": { "type": ["string", "null"], "maxLength": 255 },
+        "mimeType": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "sizeBytes": { "type": ["integer", "null"], "minimum": 0 },
+        "uploadedBy": { "type": "string", "format": "uuid" },
+        "uploadedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "documentLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "documentId", "linkedEntityType", "linkedEntityId", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "documentId": { "type": "string", "format": "uuid" },
+        "linkedEntityType": {
+          "type": "string",
+          "enum": ["issued_invoice", "received_invoice", "expense", "bank_transaction", "business_partner"]
+        },
+        "linkedEntityId": { "type": "string", "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "documentComment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "documentId", "authorId", "body", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "documentId": { "type": "string", "format": "uuid" },
+        "authorId": { "type": "string", "format": "uuid" },
+        "body": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "documentQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "documentId", "question", "status", "askedBy", "askedAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "documentId": { "type": "string", "format": "uuid" },
+        "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "answer": { "type": ["string", "null"], "maxLength": 4000 },
+        "status": {
+          "type": "string",
+          "enum": ["needs_info", "answered", "approved", "resolved"]
+        },
+        "askedBy": { "type": "string", "format": "uuid" },
+        "askedAt": { "type": "string", "format": "date-time" },
+        "answeredBy": { "type": ["string", "null"], "format": "uuid" },
+        "answeredAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

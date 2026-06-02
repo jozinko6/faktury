@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/invoice-pdf.schema.json",
+  "title": "Invoice PDF version",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pdfVersion", "requiredFields", "sepaQr"],
+  "properties": {
+    "pdfVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "invoiceId",
+        "version",
+        "fileId",
+        "pdfHash",
+        "snapshotHash",
+        "templateVersion",
+        "renderVersion",
+        "status",
+        "createdBy",
+        "createdAt",
+        "reason"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "invoiceId": { "type": "string", "format": "uuid" },
+        "version": { "type": "integer", "minimum": 1 },
+        "fileId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stored file identifier. Do not use filesystem path as identity."
+        },
+        "pdfHash": { "$ref": "#/$defs/sha256" },
+        "snapshotHash": { "$ref": "#/$defs/sha256" },
+        "templateVersion": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "renderVersion": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "status": {
+          "type": "string",
+          "enum": ["draft_render", "issued", "sent", "superseded", "voided"]
+        },
+        "createdBy": { "type": "string", "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reason": {
+          "type": "string",
+          "enum": ["issue", "correction", "rerender_before_send", "void"]
+        },
+        "immutableAfterSend": {
+          "const": true,
+          "description": "Sent PDFs must not be silently changed."
+        }
+      }
+    },
+    "requiredFields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "supplier",
+        "customer",
+        "taxIdentifiers",
+        "dates",
+        "payment",
+        "items",
+        "totals",
+        "slovakTexts"
+      ],
+      "properties": {
+        "supplier": { "$ref": "#/$defs/pdfParty" },
+        "customer": { "$ref": "#/$defs/pdfParty" },
+        "taxIdentifiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ico", "dic", "icDph"],
+          "properties": {
+            "ico": { "type": ["string", "null"], "pattern": "^[0-9]{8}$" },
+            "dic": { "type": ["string", "null"], "pattern": "^[0-9]{10}$" },
+            "icDph": { "type": ["string", "null"], "pattern": "^SK[0-9]{10}$" }
+          }
+        },
+        "dates": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["issueDate", "deliveryDate", "dueDate"],
+          "properties": {
+            "issueDate": { "type": "string", "format": "date" },
+            "deliveryDate": { "type": "string", "format": "date" },
+            "taxPointDate": { "type": ["string", "null"], "format": "date" },
+            "dueDate": { "type": "string", "format": "date" }
+          }
+        },
+        "payment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["paymentMethod", "iban", "variableSymbol"],
+          "properties": {
+            "paymentMethod": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "iban": { "type": "string", "minLength": 15, "maxLength": 34 },
+            "bic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+            "variableSymbol": { "type": "string", "minLength": 1, "maxLength": 20 },
+            "constantSymbol": { "type": ["string", "null"], "maxLength": 20 },
+            "specificSymbol": { "type": ["string", "null"], "maxLength": 20 }
+          }
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/pdfItem" }
+        },
+        "totals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["taxBase", "vat", "total", "amountDue"],
+          "properties": {
+            "taxBase": { "type": "number" },
+            "vat": { "type": "number" },
+            "total": { "type": "number" },
+            "amountDue": { "type": "number" },
+            "currency": { "const": "EUR" }
+          }
+        },
+        "slovakTexts": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        },
+        "clientNote": { "type": ["string", "null"], "maxLength": 2000 }
+      }
+    },
+    "sepaQr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iban", "amount", "currency", "variableSymbol", "recipientName"],
+      "properties": {
+        "iban": { "type": "string", "minLength": 15, "maxLength": 34 },
+        "bic": { "type": ["string", "null"], "minLength": 8, "maxLength": 11 },
+        "amount": { "type": "number", "exclusiveMinimum": 0 },
+        "currency": { "const": "EUR" },
+        "variableSymbol": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "remittanceInformation": { "type": ["string", "null"], "maxLength": 140 },
+        "recipientName": { "type": "string", "minLength": 1, "maxLength": 70 }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "pdfParty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "address"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 190 },
+        "address": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "ico": { "type": ["string", "null"], "pattern": "^[0-9]{8}$" },
+        "dic": { "type": ["string", "null"], "pattern": "^[0-9]{10}$" },
+        "icDph": { "type": ["string", "null"], "pattern": "^SK[0-9]{10}$" }
+      }
+    },
+    "pdfItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "quantity", "unit", "unitPriceNet", "vatRate", "taxBase", "vat", "total"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "quantity": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "unitPriceNet": { "type": "number" },
+        "vatRate": { "type": "string", "enum": ["SK-23", "SK-19", "SK-5", "SK-0", "SK-RC"] },
+        "taxBase": { "type": "number" },
+        "vat": { "type": "number" },
+        "total": { "type": "number" }
+      }
+    }
+  }
+}

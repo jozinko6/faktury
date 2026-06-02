@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uctovnik.local/schemas/number-series.schema.json",
+  "title": "Number series and reservations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["series", "counter"],
+  "properties": {
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "organizationId",
+        "documentType",
+        "code",
+        "pattern",
+        "period",
+        "assignOn",
+        "isActive",
+        "validFrom",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "documentType": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "proforma",
+            "credit_note",
+            "corrective_invoice",
+            "cash_receipt",
+            "cash_expense",
+            "internal_document"
+          ]
+        },
+        "code": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "pattern": {
+          "type": "string",
+          "enum": [
+            "FV{YYYY}{NNNN}",
+            "ZF{YYYY}{NNNN}",
+            "OF{YYYY}{NNNN}",
+            "PF{YYYY}{NNNN}",
+            "PPD{YYYY}{NNNN}",
+            "VPD{YYYY}{NNNN}",
+            "ID{YYYY}{NNNN}"
+          ]
+        },
+        "period": {
+          "type": "string",
+          "enum": ["year", "month", "none"]
+        },
+        "assignOn": {
+          "const": "issue",
+          "description": "Draft documents must not receive a document number."
+        },
+        "padding": { "type": "integer", "minimum": 1, "maximum": 12, "default": 4 },
+        "nextNumber": { "type": "integer", "minimum": 1 },
+        "isActive": { "type": "boolean" },
+        "validFrom": { "type": "string", "format": "date" },
+        "validTo": { "type": ["string", "null"], "format": "date" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "counter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "seriesId",
+        "periodKey",
+        "lastIssuedNumber",
+        "lockedByTransaction",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "seriesId": { "type": "string", "format": "uuid" },
+        "periodKey": {
+          "type": "string",
+          "pattern": "^[0-9]{4}(-[0-9]{2})?$",
+          "description": "Examples: 2026 or 2026-01."
+        },
+        "lastIssuedNumber": { "type": "integer", "minimum": 0 },
+        "lockedByTransaction": {
+          "type": ["string", "null"],
+          "maxLength": 120,
+          "description": "Runtime lock owner for atomic issue operations."
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "reservation": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "seriesId",
+        "organizationId",
+        "documentId",
+        "documentType",
+        "number",
+        "status",
+        "reservedBy",
+        "reservedAt",
+        "auditEventId"
+      ],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "seriesId": { "type": "string", "format": "uuid" },
+        "organizationId": { "type": "string", "format": "uuid" },
+        "documentId": { "type": "string", "format": "uuid" },
+        "documentType": {
+          "type": "string",
+          "enum": [
+            "invoice",
+            "proforma",
+            "credit_note",
+            "corrective_invoice",
+            "cash_receipt",
+            "cash_expense",
+            "internal_document"
+          ]
+        },
+        "number": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Human document number, never a database ID."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["reserved", "issued", "voided", "failed_reserved"]
+        },
+        "failureReason": { "type": ["string", "null"], "maxLength": 500 },
+        "reservedBy": { "type": "string", "format": "uuid" },
+        "reservedAt": { "type": "string", "format": "date-time" },
+        "issuedAt": { "type": ["string", "null"], "format": "date-time" },
+        "voidedAt": { "type": ["string", "null"], "format": "date-time" },
+        "auditEventId": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

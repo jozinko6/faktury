@@ -1,0 +1,54 @@
+{
+  "name": "uctovnik",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:bootstrap": "tsx prisma/bootstrap-sqlite.ts",
+    "db:seed": "prisma db seed",
+    "test:create-draft-invoice": "tsx scripts/verify-create-draft-invoice.ts",
+    "test:draft-invoice-api": "tsx scripts/verify-draft-invoice-api.ts",
+    "test:draft-invoice-list-api": "tsx scripts/verify-draft-invoice-list-api.ts",
+    "test:invoice-pdf-metadata-api": "tsx scripts/verify-invoice-pdf-metadata-api.ts",
+    "test:invoice-pdf-metadata-list-api": "tsx scripts/verify-invoice-pdf-metadata-list-api.ts",
+    "test:invoice-pdf-metadata": "tsx scripts/verify-invoice-pdf-metadata.ts",
+    "test:invoice-pdf-render-api": "tsx scripts/verify-invoice-pdf-render-api.ts",
+    "test:invoice-email-outbox": "tsx scripts/verify-invoice-email-outbox.ts",
+    "test:invoice-email-outbox-api": "tsx scripts/verify-invoice-email-outbox-api.ts",
+    "test:invoice-email-worker": "tsx scripts/verify-invoice-email-worker.ts",
+    "test:invoice-email-worker-api": "tsx scripts/verify-invoice-email-worker-api.ts",
+    "test:banking-runtime": "tsx scripts/verify-banking-runtime.ts",
+    "test:bank-csv-import": "tsx scripts/verify-bank-csv-import.ts",
+    "test:bank-csv-import-api": "tsx scripts/verify-bank-csv-import-api.ts",
+    "test:bank-import-list-api": "tsx scripts/verify-bank-import-list-api.ts",
+    "test:issue-invoice-api": "tsx scripts/verify-issue-invoice-api.ts",
+    "test:issue-removes-draft-from-list": "tsx scripts/verify-issue-removes-draft-from-list.ts",
+    "test:issue-invoice": "tsx scripts/verify-issue-invoice.ts",
+    "test:contracts": "powershell -ExecutionPolicy Bypass -File ./tests/validate-contracts.ps1"
+  },
+  "dependencies": {
+    "@prisma/client": "6.8.2",
+    "next": "15.5.18",
+    "prisma": "6.8.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.24",
+    "@types/react": "19.1.6",
+    "@types/react-dom": "19.1.5",
+    "tsx": "4.19.4",
+    "typescript": "5.8.3"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
